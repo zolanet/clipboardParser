@@ -1,40 +1,21 @@
 import * as vscode from "vscode";
 
+const ETCS_FILENAME = /\w\.\d.+\.json/gm;
+const REPORT_FILENAME = /(?<=\*\s)\w\.\d.+/gm;
+
 export async function pasteEtcsFilenames() {
   let text = await vscode.env.clipboard.readText();
-  writeToCurrentEditor(parseToListOfEtcsFiles(text));
+  writeToCurrentEditor(parseTolist(text, ETCS_FILENAME));
+}
+
+export async function pasteComparatorReport() {
+  let text = await vscode.env.clipboard.readText();
+  writeToCurrentEditor(parseTolist(text.trim(), REPORT_FILENAME));
 }
 
 export async function pasteAsMdUri() {
   let text = await vscode.env.clipboard.readText();
   writeToCurrentEditor(formatAsMdLink(text.trim()));
-}
-
-function parseToListOfEtcsFiles(text: string): string[] {
-  const re = new RegExp("\\w\\.\\d.+\\.json", "g");
-  const matches = text.match(re);
-  if (matches) {
-    let unique = [...new Set(matches)];
-    unique.sort();
-    return unique;
-  }
-  vscode.window.showInformationMessage("Clipboard does not contain filenames.");
-  return stringToList(text);
-}
-
-function stringToList(text: string): string[] {
-  return text.split("\n");
-}
-
-function formatAsMdLink(text: string): string[] {
-  if (isProperUrl(text)) {
-    let uri = vscode.Uri.parse(text);
-    let filename = uri.path.split("/").pop();
-    return stringToList(`[${filename}](${uri})\n`);
-  }
-
-  vscode.window.showInformationMessage("Clipboard does not contain a URL.");
-  return stringToList(`${text}\n`);
 }
 
 function writeToCurrentEditor(content: string[]) {
@@ -46,6 +27,29 @@ function writeToCurrentEditor(content: string[]) {
       });
     });
   }
+}
+
+function parseTolist(text: string, regexp: RegExp) {
+  const matches = text.match(regexp);
+  if (matches) {
+    return [...new Set(matches.map((match) => "- " + match.trim()))].sort();
+  }
+  vscode.window.showInformationMessage("Clipboard does not contain filenames.");
+  return arrayFromString(text);
+}
+
+function arrayFromString(text: string): string[] {
+  return text.split("\n");
+}
+
+function formatAsMdLink(text: string): string[] {
+  if (isProperUrl(text)) {
+    let uri = vscode.Uri.parse(text);
+    let filename = uri.path.split("/").pop();
+    return arrayFromString(`[${filename}](${uri})`);
+  }
+  vscode.window.showInformationMessage("Clipboard does not contain a URL.");
+  return arrayFromString(`${text}`);
 }
 
 function isProperUrl(url: string): boolean {

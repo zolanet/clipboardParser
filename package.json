@@ -1,7 +1,7 @@
 {
-  "name": "clipboardParser",
+  "name": "clipboard-parser",
   "displayName": "Clipboard Parser",
-  "description": "Parse cliboard data before pasting",
+  "description": "Parse clipboard data before pasting",
   "version": "1.0.0",
   "engines": {
     "vscode": "^1.96.0"
@@ -14,15 +14,23 @@
   "contributes": {
     "commands": [
       {
-        "command": "clipboardParser.pasteEtcsFilenames",
+        "command": "clipboard-parser.pasteEtcsFilenames",
         "title": "Paste ETCS Filenames"
       },
       {
-        "command": "clipboardParser.pasteAsMdUri",
+        "command": "clipboard-parser.pasteAsMdUri",
         "title": "Paste as Markdown URI"
+      },
+      {
+        "command": "clipboard-parser.pasteComparatorReport",
+        "title": "Paste Comparator Report"
       }
     ]
   },
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/zolanet/clipboardParser.git"
+},
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
