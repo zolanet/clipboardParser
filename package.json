@@ -24,6 +24,10 @@
       {
         "command": "clipboard-parser.pasteComparatorReport",
         "title": "Paste Comparator Report"
+      },
+      {
+        "command": "clipboard-parser.prettyPasteStackTrace",
+        "title": "Pretty Paste Stack Trace"
       }
     ]
   },

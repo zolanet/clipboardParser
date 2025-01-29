@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 
 const ETCS_FILENAME = /\w\.\d.+\.json/gm;
 const REPORT_FILENAME = /(?<=\*\s)\w\.\d.+/gm;
+const PROPER_URL = /[^-A-Za-z0-9+&@#/%?=~_|!:,.;()]/gm;
+const STACK_TRACE = /(?=\sat)/gm;
 
 export async function pasteEtcsFilenames() {
   let text = await vscode.env.clipboard.readText();
@@ -16,6 +18,12 @@ export async function pasteComparatorReport() {
 export async function pasteAsMdUri() {
   let text = await vscode.env.clipboard.readText();
   writeToCurrentEditor(formatAsMdLink(text.trim()));
+}
+
+export async function prettyPasteStackTrace() {
+  let text = await vscode.env.clipboard.readText();
+  let lines = text.split(STACK_TRACE);
+  writeToCurrentEditor(lines);
 }
 
 function writeToCurrentEditor(content: string[]) {
@@ -53,6 +61,5 @@ function formatAsMdLink(text: string): string[] {
 }
 
 function isProperUrl(url: string): boolean {
-  const re = new RegExp("[^-A-Za-z0-9+&@#/%?=~_|!:,.;()]", "g");
-  return !re.test(url);
+  return !PROPER_URL.test(url);
 }
