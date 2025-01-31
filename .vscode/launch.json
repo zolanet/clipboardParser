@@ -5,6 +5,7 @@
 {
 	"version": "0.2.0",
 	"configurations": [
+
 		{
 			"name": "Run Extension",
 			"type": "extensionHost",
@@ -16,6 +17,13 @@
 				"${workspaceFolder}/out/**/*.js"
 			],
 			"preLaunchTask": "${defaultBuildTask}"
-		}
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Run Current File",
+			"skipFiles": ["<node_internals>/**"],
+			"program": "${file}"
+		  }
 	]
 }

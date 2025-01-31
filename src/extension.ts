@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { pasteAsMdUri, pasteEtcsFilenames, pasteComparatorReport, prettyPasteStackTrace } from "./pasteActions";
+import { pasteAsMdUri, pasteEtcsFilenames, pasteComparatorReport, prettyPasteStackTrace, prettyPasteLogs, pasteNonBreakSpace } from "./pasteActions";
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const pastepasteComparatorReport = vscode.commands.registerCommand(
+  const pastepasteComparatorReportCommand = vscode.commands.registerCommand(
     "clipboard-parser.pasteComparatorReport",
     () => {
       pasteComparatorReport();
@@ -31,9 +31,21 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  
+  const prettyPasteLogsCommand = vscode.commands.registerCommand(
+    "clipboard-parser.prettyPasteLogs",
+    () => {
+      prettyPasteLogs();
+    }
+  );
 
-  context.subscriptions.push(pasteAsMdUriCommand, pasteFilenamesCommand, prettyPasteStackTraceCommand, pastepasteComparatorReport);
+  const pasteNonBreakSpaceCommand = vscode.commands.registerCommand(
+    "clipboard-parser.pasteNonBreakSpace",
+    () => {
+      pasteNonBreakSpace();
+    }
+  );
+
+  context.subscriptions.push(pasteAsMdUriCommand, pasteFilenamesCommand, prettyPasteStackTraceCommand, pastepasteComparatorReportCommand, prettyPasteLogsCommand, pasteNonBreakSpaceCommand);
 }
 
-export function deactivate() {}
+export function deactivate() { }

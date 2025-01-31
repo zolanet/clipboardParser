@@ -28,6 +28,14 @@
       {
         "command": "clipboard-parser.prettyPasteStackTrace",
         "title": "Pretty Paste Stack Trace"
+      },
+      {
+        "command": "clipboard-parser.prettyPasteLogs",
+        "title": "Pretty Paste Logs"
+      },
+      {
+        "command": "clipboard-parser.pasteNonBreakSpace",
+        "title": "Paste nbsp"
       }
     ]
   },
