@@ -33,20 +33,19 @@ export async function prettyPasteStackTrace() {
 export async function prettyPasteLogs() {
   let text = await vscode.env.clipboard.readText();
 
-  //remove logger id:
-  let finalText = text
-    .replace(INLINE_COMMA, ',\n')
-    .replace(LOGGER_ID, '')
-    .replaceAll('ErrorHolder', '')
-    .replaceAll(UNQUOTED_KEY, '"$1"')
-    .replaceAll(UNQUOTED_VALUE, '"$1"')
-    .replaceAll('\'', '"')
-    .replaceAll('=', ':')
-    .replace(/^/, '{')
-    .replace(/$/, '}');
+  // First, convert stringified object to json
+  if (text.match(/=/gm)) {
+    text = convertToProperObject(text);
+  }
+  //count number of {
+  text = matchBracesAndBrackets(text);
+  //pretty print
+  text = prettyPrintJson(text);
 
-  let json = prettyPrintJson(finalText).replaceAll(' at ', ' \nat ');
-  writeToCurrentEditor(json === "" ? text.split('\n') : json.split('\n'));
+  let output = text.replaceAll(' at ', ' \nat ');
+  //seperate stack trace items
+
+  writeToCurrentEditor(output === "" ? text.split('\n') : output.split('\n'));
 }
 
 export function pasteNonBreakSpace() {
@@ -91,15 +90,59 @@ function formatAsMdLink(text: string): string[] {
   return arrayFromString(text);
 }
 
-function prettyPrintJson(text: string): string {
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2);
-  } catch (error) {
-    vscode.window.showInformationMessage("Clipboard does not contain valid JSON.");
-    return "";
-  }
-}
-
 function isProperUrl(url: string): boolean {
   return !PROPER_URL.test(url);
+}
+
+function matchBracesAndBrackets(text: string) {
+  if (text) {
+    let openBraces = text.match(/{/g)?.length;
+    let closeBraces = text.match(/}/g)?.length;
+    // count number of [
+    let openBrackets = text.match(/\[/g)?.length;
+    let closeBrackets = text.match(/\]/g)?.length;
+    //check if number of [ and ] are equal
+    if (openBrackets !== closeBrackets) {
+      text = text + ']';
+    }
+    //check if number of { and } are equal
+    if (openBraces !== closeBraces) {
+      text = text + '}';
+    }
+  }
+
+  return text;
+}
+
+function convertToProperObject(text: string) {
+  let finalText = text
+    .replace(INLINE_COMMA, ',\n')
+    .replaceAll('ErrorHolder', '')
+    .replaceAll(UNQUOTED_KEY, '"$1"')
+    .replaceAll(UNQUOTED_VALUE, '"$1"')
+    .replaceAll('\'', '"')
+    .replaceAll('=', ':');
+  let firstKey = finalText.search(/\".+?\":/);
+  //check if first key is precede by {
+  if (!/\{/.test(finalText.substring(0, firstKey))) {
+    finalText = finalText.substring(0, firstKey) + '{' + finalText.substring(firstKey, finalText.length) + '}';
+  }
+  return finalText;
+
+}
+function prettyPrintJson(text: string) {
+  let firstBrace = text.search(/{/);
+  let lastBrace = text.search(/(?![^\}]*\})/);
+  let betweenBraces = text.substring(firstBrace, lastBrace);
+  let prettyJson = '';
+  if (betweenBraces) {
+    try {
+      prettyJson = JSON.stringify(JSON.parse(betweenBraces), null, 2);
+    } catch (error) {
+      vscode.window.showInformationMessage("Clipboard does not contain valid JSON.");
+      prettyJson = betweenBraces;
+    }
+    return text.replace(betweenBraces, prettyJson);
+  }
+  return text;
 }
