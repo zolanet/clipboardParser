@@ -7,7 +7,8 @@ const STACK_TRACE = /(?=\sat)/gm;
 const UNQUOTED_KEY = /(\b\w+\b)(?=\=)/gm;
 const UNQUOTED_VALUE = /(?<=\=)(\b(?!null|true|false|{).+\b)\)*(?=,)*/gm;
 const INLINE_COMMA = /,(?!\n)/g;
-const LOGGER_ID = /^[a-z]\..+\s+-\s+/g;
+const LOG_HEADER = /^.+\| /gm;
+const MORE = /(... \d+ more(?=\w))/;
 
 export async function pasteEtcsFilenames() {
   let text = await vscode.env.clipboard.readText();
@@ -32,19 +33,13 @@ export async function prettyPasteStackTrace() {
 
 export async function prettyPasteLogs() {
   let text = await vscode.env.clipboard.readText();
+  let output = extractLogParts(text);
+  writeToCurrentEditor(output === "" ? text.split('\n') : output.split('\n'));
+}
 
-  // First, convert stringified object to json
-  if (text.match(/=/gm)) {
-    text = convertToProperObject(text);
-  }
-  //count number of {
-  text = matchBracesAndBrackets(text);
-  //pretty print
-  text = prettyPrintJson(text);
-
-  let output = text.replaceAll(' at ', ' \nat ');
-  //seperate stack trace items
-
+export async function pasteJsonFromErrorReport() {
+  let text = await vscode.env.clipboard.readText();
+  let output = extractJsonFromLog(text);
   writeToCurrentEditor(output === "" ? text.split('\n') : output.split('\n'));
 }
 
@@ -94,6 +89,21 @@ function isProperUrl(url: string): boolean {
   return !PROPER_URL.test(url);
 }
 
+export function extractLogParts(text: string) {
+  // First, convert stringified object to json
+  if (text.match(/=/gm)) {
+    text = convertToProperObject(text);
+  }
+  //count number of {
+  text = matchBracesAndBrackets(text);
+  //pretty print
+  text = prettyPrintJson(text);
+
+  return text.replaceAll(' at ', ' \nat ');
+  //seperate stack trace items
+
+}
+
 function matchBracesAndBrackets(text: string) {
   if (text) {
     let openBraces = text.match(/{/g)?.length;
@@ -118,6 +128,7 @@ function convertToProperObject(text: string) {
   let finalText = text
     .replace(INLINE_COMMA, ',\n')
     .replaceAll('ErrorHolder', '')
+    .replace(MORE, '$1,\n')
     .replaceAll(UNQUOTED_KEY, '"$1"')
     .replaceAll(UNQUOTED_VALUE, '"$1"')
     .replaceAll('\'', '"')
@@ -144,5 +155,14 @@ function prettyPrintJson(text: string) {
     }
     return text.replace(betweenBraces, prettyJson);
   }
+  return text;
+}
+
+export function extractJsonFromLog(text: string) {
+  if (LOG_HEADER.test(text)) {
+    return prettyPrintJson(text.replaceAll(LOG_HEADER, "")
+      .replaceAll(/^\n/gm, ""));
+  }
+  vscode.window.showInformationMessage("Clipboard does not contain json.");
   return text;
 }

@@ -36,13 +36,17 @@
       {
         "command": "clipboard-parser.pasteNonBreakSpace",
         "title": "Paste nbsp"
+      },
+      {
+        "command": "clipboard-parser.pasteJsonFromErrorReport",
+        "title": "Paste Json From Error report"
       }
     ]
   },
   "repository": {
-  "type": "git",
-  "url": "https://github.com/zolanet/clipboardParser.git"
-},
+    "type": "git",
+    "url": "https://github.com/zolanet/clipboardParser.git"
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
