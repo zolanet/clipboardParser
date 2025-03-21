@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { pasteAsMdUri, pasteEtcsFilenames, pasteComparatorReport, prettyPasteStackTrace, prettyPasteLogs, pasteNonBreakSpace, pasteJsonFromErrorReport } from "./pasteActions";
+import { pasteAsMdUri, pasteEtcsFilenames, pasteComparatorReport, prettyPasteStackTrace, prettyPasteLogs, pasteNonBreakSpace, pasteJsonFromErrorReport, extractFilesFromRequestId } from "./pasteActions";
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -51,8 +51,15 @@ export function activate(context: vscode.ExtensionContext) {
       pasteJsonFromErrorReport();
     }
   );
-  
-  context.subscriptions.push(pasteAsMdUriCommand, pasteFilenamesCommand, prettyPasteStackTraceCommand, pastepasteComparatorReportCommand, prettyPasteLogsCommand, pasteNonBreakSpaceCommand, pasteJsonFromErrorReportCommand);
+
+  const extractFilesFromRequestIdCommand = vscode.commands.registerCommand(
+    "clipboard-parser.extractFilesFromRequestId",
+    () => {
+      extractFilesFromRequestId();
+    }
+  );
+
+  context.subscriptions.push(pasteAsMdUriCommand, pasteFilenamesCommand, prettyPasteStackTraceCommand, pastepasteComparatorReportCommand, prettyPasteLogsCommand, pasteNonBreakSpaceCommand, pasteJsonFromErrorReportCommand, extractFilesFromRequestIdCommand);
 }
 
 export function deactivate() { }

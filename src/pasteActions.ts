@@ -51,6 +51,20 @@ export function pasteNonBreakSpace() {
     });
   }
 }
+
+export async function extractFilesFromRequestId() {
+  //Paste csv content???
+  let text = await vscode.env.clipboard.readText();
+
+  let finalText = text
+    .replace(/^\s*(.+)-\d{4}.+\d{3}-/gm, 'h2.$1\n* ')//split test-case prefix
+    .replace(/_/g, '-')//Replace undurscor _ with -
+    .replace(/(^\* [A-Z])-(\d+)-(\d+)-(\d+)/, '$1.$2.$3.$4')//format component id
+    .replace(/(?<=-functional|-integration)-(.+)/gm, '\n** $1')//Split test case
+    .replace(/-\w{8}\s*$/, '');// remove dlq suffix
+  writeToCurrentEditor(finalText.split('\n'));
+}
+
 function writeToCurrentEditor(content: string[]) {
   const editor = vscode.window.activeTextEditor;
   if (editor) {

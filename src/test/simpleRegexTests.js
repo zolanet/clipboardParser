@@ -4,4 +4,4 @@ test/bla/bla/bla/c.3.4.150-oneFifty.json | 4 ++--
 
 const re = new RegExp("\\w\\.\\d.+\\.json", "g");
 const matches = text.match(re);
-matches.forEach(item => console.log(item))
+matches.forEach(item => console.log(item));

@@ -40,6 +40,10 @@
       {
         "command": "clipboard-parser.pasteJsonFromErrorReport",
         "title": "Paste Json From Error report"
+      },
+      {
+        "command": "clipboard-parser.extractFilesFromRequestId",
+        "title": "Extract Files From Request Id"
       }
     ]
   },
