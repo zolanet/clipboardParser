@@ -3,9 +3,9 @@ let text = 'property-test-case-2025.03.21-08.00.00.000-C_5_1_100_SubscribeAndMan
 
 let finalText = text
     .replace(/^\s*(.+)-\d{4}.+\d{3}-/gm, 'h2.$1\n* ')//split test-case prefix
-    .replace(/_/g, '-')//Replace undurscor _ with -
-    .replace(/(^\* [A-Z])-(\d+)-(\d+)-(\d+)/, '$1.$2.$3.$4')//format component id
+    .replace(/_/gm, '-')//Replace undurscor _ with -
+    .replace(/(^\* [A-Z])-(\d+)-(\d+)-(\d+)/gm, '$1.$2.$3.$4')//format component id
     .replace(/(?<=-functional|-integration)-(.+)/gm, '\n** $1')//Split test case
-    .replace(/-\w{8}\s*$/, '');// remove dlq suffix
+    .replace(/-\w{8}\s*$/gm, '');// remove dlq suffix
 
     console.log(finalText);
