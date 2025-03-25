@@ -42,7 +42,7 @@
         "title": "Paste Json From Error report"
       },
       {
-        "command": "clipboard-parser.extractFilesFromRequestId",
+        "command": "clipboard-parser.pasteRequestIdsAsFiles",
         "title": "Extract Files From Request Id"
       }
     ]

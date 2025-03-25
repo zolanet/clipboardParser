@@ -72,7 +72,7 @@ let logResp = `{
 }`;
 
 
-suite('Extension Test Suite', () => {
+suite('Build Log Parser Test Suite', () => {
     vscode.window.showInformationMessage('Start all tests.');
 
     test('proper log', () => {

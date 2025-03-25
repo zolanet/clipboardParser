@@ -43,6 +43,14 @@ export async function pasteJsonFromErrorReport() {
   writeToCurrentEditor(output === "" ? text.split('\n') : output.split('\n'));
 }
 
+export async function pasteRequestIdsAsFiles() {
+  //Paste csv content???
+  let text = await vscode.env.clipboard.readText();
+  let output = extractFilesFromRequestId(text);
+  writeToCurrentEditor(output.length === 0 ? text.split('\n') : output);
+}
+
+/* --- "Private Functions here" --- */
 export function pasteNonBreakSpace() {
   const editor = vscode.window.activeTextEditor;
   if (editor) {
@@ -52,18 +60,6 @@ export function pasteNonBreakSpace() {
   }
 }
 
-export async function extractFilesFromRequestId() {
-  //Paste csv content???
-  let text = await vscode.env.clipboard.readText();
-
-  let finalText = text
-    .replace(/^\s*(.+)-\d{4}.+\d{3}-/gm, 'h2.$1\n* ')//split test-case prefix
-    .replace(/_/gm, '-')//Replace undurscor _ with -
-    .replace(/(^\* [A-Z])-(\d+)-(\d+)-(\d+)/gm, '$1.$2.$3.$4')//format component id
-    .replace(/(?<=-functional|-integration)-(.+)/gm, '\n** $1')//Split test case
-    .replace(/-\w{8}\s*$/gm, '');// remove dlq suffix
-  writeToCurrentEditor(finalText.split('\n'));
-}
 
 function writeToCurrentEditor(content: string[]) {
   const editor = vscode.window.activeTextEditor;
@@ -180,3 +176,50 @@ export function extractJsonFromLog(text: string) {
   vscode.window.showInformationMessage("Clipboard does not contain json.");
   return text;
 }
+
+//export for tests only
+export function extractFilesFromRequestId(text: string) {
+  if (text.includes(',')) {
+    text = extractRequestIdFromCsv(text);
+  }
+
+  const parsedText = sortText(text)
+    .replace(/^\s*(.+)-\d{4}.+\d{3}-/gm, 'h2.$1\n* ')
+    .replace(/_/g, '-')
+    .replace(/(^\* [A-Z])-(\d+)-(\d+)-(\d+)/gm, '$1.$2.$3.$4')
+    .replace(/(?<=-functional|-integration)-(.+)/gm, '\n** $1')
+    .replace(/-\w{8}\s*$/gm, '');
+
+  const lines = parsedText.split('\n');
+  const map = new Map<string, Map<string, string[]>>();
+
+  for (let i = 0; i < lines.length; i += 3) {
+    const [category, testFile, testCase] = lines.slice(i, i + 3);
+    !map.has(category) && map.set(category, new Map());
+    !map.get(category)?.has(testFile) && map.get(category)?.set(testFile, []);
+    map.get(category)?.get(testFile)?.push(testCase);
+  }
+
+  return Array.from(map, ([category, testFiles]) => [
+    category,
+    ...Array.from(testFiles, ([testFile, testCases]) => [
+      testFile,
+      ...testCases
+    ].flat())
+  ].flat()).flat();
+
+
+}
+
+function extractRequestIdFromCsv(text: string) {
+  const regex = /(?:[^,]*,){3}([^,]*)(?:.+$)/gm;
+  const matches = Array.from(text.matchAll(regex), match => match[1].trim().replace(/"/g, ""));
+  matches.shift(); // remove headers
+  text = matches.join('\n');
+  return text;
+}
+
+function sortText(text: string) {
+  return text.split('\n').sort().join('\n');
+}
+

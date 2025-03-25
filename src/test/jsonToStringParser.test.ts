@@ -110,7 +110,7 @@ at com.example.demo.service.DemoService.write(DemoService.java:74)
 at java.base/java.util.Optional.map(Optional.java:260) ... 21 more`;
 
 
-suite('Extension Test Suite', () => {
+suite('Json To String Parser Test', () => {
     vscode.window.showInformationMessage('Start all tests.');
 
     test('minifiedConsole', () => {
