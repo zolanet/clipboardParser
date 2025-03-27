@@ -177,44 +177,58 @@ export function extractJsonFromLog(text: string) {
   return text;
 }
 
-//export for tests only
-export function extractFilesFromRequestId(text: string) {
+//export for unit tests
+export function extractFilesFromRequestId(text: string): string[] {
   if (text.includes(',')) {
     text = extractRequestIdFromCsv(text);
   }
 
-  const parsedText = sortText(text)
-    .replace(/^\s*(.+)-\d{4}.+\d{3}-/gm, 'h2.$1\n* ')
+  const regexWithCategory = /^(?<category>.+?)-\d{4}.+\d{3}-(?<testFile>.+?)(?<=_functional|_integration|_support)_(?<testCase>.+?)_\w{8}$/;
+  const regexNoCategory = /^(?:.+?)-(?<testFile>.+?)(?<=_functional|_integration|_support)_(?<testCase>.+?)_\w{8}$/;//TODO test as else if
+
+  const result: Record<string, Record<string, string[]>> = {};
+
+  text.split('\n').sort().forEach((line) => {
+    const matchWithCategory = regexWithCategory.exec(line);
+    const matchWithoutCategory = regexNoCategory.exec(line);
+
+    if (matchWithCategory?.groups) {
+      const { category, testFile, testCase } = matchWithCategory.groups;
+      addToResult(result, category, testFile, testCase);
+    }
+    else if (matchWithoutCategory?.groups) {
+      const { testFile, testCase } = matchWithoutCategory.groups;
+      addToResult(result, 'no-category', testFile, testCase);
+    }
+    else {
+      addToResult(result, 'no-category', 'no-test-file', line);
+    }
+  });
+
+  return Object.entries(result).flatMap(([category, testFiles]) => [
+    `h2.${category}`,
+    ...Object.entries(testFiles).flatMap(([testFile, testCases]) => [
+      `* ${testFile}`,
+      ...testCases.map((testCase) => `** ${testCase}`)
+    ])
+  ]);
+}
+
+
+function addToResult(result: Record<string, Record<string, string[]>>, category: string, testFile: string, testCase: string) {
+  const formattedTestFile = testFile
     .replace(/_/g, '-')
-    .replace(/(^\* [A-Z])-(\d+)-(\d+)-(\d+)/gm, '$1.$2.$3.$4')
-    .replace(/(?<=-functional|-integration)-(.+)/gm, '\n** $1')
-    .replace(/-\w{8}\s*$/gm, '');
+    .replace(/(^[A-Z])-(\d+)-(\d+)-(\d+)/gm, '$1.$2.$3.$4');
 
-  const lines = parsedText.split('\n');
-  const map = new Map<string, Map<string, string[]>>();
-
-  for (let i = 0; i < lines.length; i += 3) {
-    const [category, testFile, testCase] = lines.slice(i, i + 3);
-    !map.has(category) && map.set(category, new Map());
-    !map.get(category)?.has(testFile) && map.get(category)?.set(testFile, []);
-    map.get(category)?.get(testFile)?.push(testCase);
-  }
-
-  return Array.from(map, ([category, testFiles]) => [
-    category,
-    ...Array.from(testFiles, ([testFile, testCases]) => [
-      testFile,
-      ...testCases
-    ].flat())
-  ].flat()).flat();
-
-
+  result[category] = result[category] || {};
+  result[category][formattedTestFile] = result[category][formattedTestFile] || [];
+  result[category][formattedTestFile].push(testCase.replace(/_/g, '-'));
 }
 
 function extractRequestIdFromCsv(text: string) {
-  const regex = /(?:[^,]*,){3}([^,]*)(?:.+$)/gm;
-  const matches = Array.from(text.matchAll(regex), match => match[1].trim().replace(/"/g, ""));
-  matches.shift(); // remove headers
+  const regex = /^(?:".*?",){3}"\s*(.*?)\s*"/gm;
+  const matches = Array.from(text.matchAll(regex), match => match[1].replace(/"/g, "").trim());
+  //matches.shift(); // remove headers
   text = matches.join('\n');
   return text;
 }
