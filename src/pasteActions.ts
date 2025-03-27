@@ -183,25 +183,25 @@ export function extractFilesFromRequestId(text: string): string[] {
     text = extractRequestIdFromCsv(text);
   }
 
-  const regexWithCategory = /^(?<category>.+?)-\d{4}.+\d{3}-(?<testFile>.+?)(?<=_functional|_integration|_support)_(?<testCase>.+?)_\w{8}\s*$/;
-  const regexNoCategory = /^(?:.+?)-(?<testFile>.+?)(?<=_functional|_integration|_support)_(?<testCase>.+?)_\w{8}\s*$/;
+  const regexWithCategory = /^(?<category>.+?)-\d{4}.+\d{3}-(?<testFile>.+?)(?<=_functional|_integration|_support)_(?<testCase>.+?)_\w{8}$/;
+  const regexNoCategory = /^(?:.+?)-(?<testFile>.+?)(?<=_functional|_integration|_support)_(?<testCase>.+?)_\w{8}$/;
 
   const result: Record<string, Record<string, string[]>> = {};
 
   text.split('\n').sort().forEach((line) => {
-    const matchWithCategory = regexWithCategory.exec(line);
-    const matchWithoutCategory = regexNoCategory.exec(line);
+    const trimmedLine = line.trim();
+
+    const matchWithCategory = regexWithCategory.exec(trimmedLine);
+    const matchWithoutCategory = regexNoCategory.exec(trimmedLine);
 
     if (matchWithCategory?.groups) {
       const { category, testFile, testCase } = matchWithCategory.groups;
       addToResult(result, category, testFile, testCase);
-    }
-    else if (matchWithoutCategory?.groups) {
+    } else if (matchWithoutCategory?.groups) {
       const { testFile, testCase } = matchWithoutCategory.groups;
       addToResult(result, 'no-category', testFile, testCase);
-    }
-    else {
-      addToResult(result, 'no-category', 'no-test-file', line);
+    } else {
+      addToResult(result, 'no-category', 'no-test-file', trimmedLine);
     }
   });
 
