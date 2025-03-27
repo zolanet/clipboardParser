@@ -18,6 +18,11 @@ property-e2e-test-case-2025.03.21-07.00.48.548-PerformDataGather_HO_CO_NEXTQA425
 property-test-case-2025.03.21-08.00.00.000-B_3_3_300_ManageInteractionOperations_functional_test_case_1_e668a4e4
 Unparseable_CreditScore_AAY0144_Assisted_test_case_1_9d97dc68`;
 
+const textWithSpaceAtTheEnd = `property-test-case-2025.03.21-08.00.00.000-C_5_1_100_SubscribeAndManageInteractionOperations_functional_test_case_1_e668a4e4 
+property-e2e-test-case-2025.03.21-07.00.48.548-PerformDataGather_HO_CO_NEXTQA4251_Assisted_integration_test_case_1_9d97dc68 
+property-test-case-2025.03.21-08.00.00.000-B_3_3_300_ManageInteractionOperations_functional_test_case_1_e668a4e4 `;
+
+
 let csv = `Namespace,Time,AppName,RequestId,CorrelationId,UserId,Message,LogEntry
 "ns","t"," an "," property-test-case-2025.03.21-08.00.00.000-C_5_1_100_SubscribeAndManageInteractionOperations_functional_test_case_1_e668a4e4 ","cid","uid","msg","le"
 "ns","t"," an "," property-e2e-test-case-2025.03.21-07.00.48.548-PerformDataGather_HO_CO_NEXTQA4251_Assisted_integration_test_case_1_9d97dc68 ","cid","uid","msg","le"
@@ -68,6 +73,10 @@ suite('Request Id Parser Test Suite', () => {
 
     test('requestIdList', () => {
         assert.strictEqual(extractFilesFromRequestId(text).join(','), resp.join(','));
+    });
+
+    test('givenTextWithSpaceAtTheEndWhenExtractFilesFromRequesrIdThenSucces', () => {
+        assert.strictEqual(extractFilesFromRequestId(textWithSpaceAtTheEnd).join(','), resp.join(','));
     });
 
     test('givenCsvWhenextractFilesFromRequestIdThenSuccess', () => {
