@@ -193,7 +193,6 @@ export function extractFilesFromRequestId(text: string): string[] {
 
     const matchWithCategory = regexWithCategory.exec(trimmedLine);
     const matchWithoutCategory = regexNoCategory.exec(trimmedLine);
-
     if (matchWithCategory?.groups) {
       const { category, testFile, testCase } = matchWithCategory.groups;
       addToResult(result, category, testFile, testCase);
@@ -222,7 +221,12 @@ function addToResult(result: Record<string, Record<string, string[]>>, category:
 
   result[category] = result[category] || {};
   result[category][formattedTestFile] = result[category][formattedTestFile] || [];
-  result[category][formattedTestFile].push(testCase.replace(/_/g, '-'));
+  //TODO do not push test-case if it exists
+  testCase = testCase.replace(/_/g, '-');
+  if (result[category][formattedTestFile].includes(testCase)) {
+    return;
+  }
+  result[category][formattedTestFile].push(testCase);
 }
 
 function extractRequestIdFromCsv(text: string) {
