@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { pasteAsMdUri, pasteEtcsFilenames, pasteComparatorReport, prettyPasteStackTrace, prettyPasteLogs, pasteNonBreakSpace, pasteJsonFromErrorReport, pasteRequestIdsAsFiles } from "./pasteActions";
+import { toJira, toMd } from './jiraFormatConverter';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -59,7 +60,21 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(pasteAsMdUriCommand, pasteFilenamesCommand, prettyPasteStackTraceCommand, pastepasteComparatorReportCommand, prettyPasteLogsCommand, pasteNonBreakSpaceCommand, pasteJsonFromErrorReportCommand, pasteRequestIdsAsFilesCommand);
+  const convertToJiraCommand = vscode.commands.registerCommand(
+    "clipboard-parser.convertToJira",
+    async () => {
+      await toJira();
+    }
+  );
+
+  const convertToMdCommand = vscode.commands.registerCommand(
+    "clipboard-parser.convertToMd",
+    async () => {
+      await toMd();
+    }
+  );
+
+  context.subscriptions.push(pasteAsMdUriCommand, pasteFilenamesCommand, prettyPasteStackTraceCommand, pastepasteComparatorReportCommand, prettyPasteLogsCommand, pasteNonBreakSpaceCommand, pasteJsonFromErrorReportCommand, pasteRequestIdsAsFilesCommand, convertToJiraCommand, convertToMdCommand);
 }
 
 export function deactivate() { }

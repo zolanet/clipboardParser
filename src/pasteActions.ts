@@ -3,7 +3,8 @@ import * as vscode from "vscode";
 const ETCS_FILENAME = /\w\.\d.+\.json/gm;
 const REPORT_FILENAME = /(?<=\*\s)\w\.\d.+/gm;
 const PROPER_URL = /[^-A-Za-z0-9+&@#/%?=~_|!:,.;()]/gm;
-const STACK_TRACE = /(?=\sat)/gm;
+const STACK_TRACE = /^\w.+at.+$/gm;
+const STACK_TRACE_SEPARATOR = /(?=\sat)/gm;
 const UNQUOTED_KEY = /(\b\w+\b)(?=\=)/gm;
 const UNQUOTED_VALUE = /(?<=\=)(\b(?!null|true|false|{).+\b)\)*(?=,)*/gm;
 const INLINE_COMMA = /,(?!\n)/g;
@@ -11,46 +12,43 @@ const LOG_HEADER = /^.+\| /gm;
 const MORE = /(... \d+ more(?=\w))/;
 
 export async function pasteEtcsFilenames() {
-  let text = await vscode.env.clipboard.readText();
+  let text = await getClipboard();
   writeToCurrentEditor(parseTolist(text, ETCS_FILENAME));
 }
 
 export async function pasteComparatorReport() {
-  let text = await vscode.env.clipboard.readText();
+  let text = await getClipboard();
   writeToCurrentEditor(parseTolist(text.trim(), REPORT_FILENAME));
 }
 
 export async function pasteAsMdUri() {
-  let text = await vscode.env.clipboard.readText();
+  let text = await getClipboard();
   writeToCurrentEditor(formatAsMdLink(text.trim()));
 }
 
 export async function prettyPasteStackTrace() {
-  let text = await vscode.env.clipboard.readText();
-  let lines = text.split(STACK_TRACE);
-  writeToCurrentEditor(lines);
+  let text = await getClipboard();
+  writeToCurrentEditor(extractStackTrace(text.trim()));
 }
 
 export async function prettyPasteLogs() {
-  let text = await vscode.env.clipboard.readText();
+  let text = await getClipboard();
   let output = extractLogParts(text);
   writeToCurrentEditor(output === "" ? text.split('\n') : output.split('\n'));
 }
 
 export async function pasteJsonFromErrorReport() {
-  let text = await vscode.env.clipboard.readText();
+  let text = await getClipboard();
   let output = extractJsonFromLog(text);
   writeToCurrentEditor(output === "" ? text.split('\n') : output.split('\n'));
 }
 
 export async function pasteRequestIdsAsFiles() {
-  //Paste csv content???
-  let text = await vscode.env.clipboard.readText();
+  let text = await getClipboard();
   let output = extractFilesFromRequestId(text);
   writeToCurrentEditor(output.length === 0 ? text.split('\n') : output);
 }
 
-/* --- "Private Functions here" --- */
 export function pasteNonBreakSpace() {
   const editor = vscode.window.activeTextEditor;
   if (editor) {
@@ -60,6 +58,11 @@ export function pasteNonBreakSpace() {
   }
 }
 
+/* --- "Private Functions here" --- */
+
+async function getClipboard() {
+  return await vscode.env.clipboard.readText();
+}
 
 function writeToCurrentEditor(content: string[]) {
   const editor = vscode.window.activeTextEditor;
@@ -95,11 +98,20 @@ function formatAsMdLink(text: string): string[] {
   return arrayFromString(text);
 }
 
+function extractStackTrace(text: string): string[] {
+  if (text.match(STACK_TRACE)) {
+    let lines = text.split(STACK_TRACE_SEPARATOR);
+    return lines;
+  }
+  vscode.window.showInformationMessage("Clipboard does not contain a stack trace.");
+  return arrayFromString(text);
+}
+
 function isProperUrl(url: string): boolean {
   return !PROPER_URL.test(url);
 }
 
-export function extractLogParts(text: string) {
+function extractLogParts(text: string) {
   // First, convert stringified object to json
   if (text.match(/=/gm)) {
     text = convertToProperObject(text);
@@ -110,8 +122,6 @@ export function extractLogParts(text: string) {
   text = prettyPrintJson(text);
 
   return text.replaceAll(' at ', ' \nat ');
-  //seperate stack trace items
-
 }
 
 function matchBracesAndBrackets(text: string) {
@@ -130,7 +140,6 @@ function matchBracesAndBrackets(text: string) {
       text = text + '}';
     }
   }
-
   return text;
 }
 
@@ -149,8 +158,8 @@ function convertToProperObject(text: string) {
     finalText = finalText.substring(0, firstKey) + '{' + finalText.substring(firstKey, finalText.length) + '}';
   }
   return finalText;
-
 }
+
 function prettyPrintJson(text: string) {
   let firstBrace = text.search(/{/);
   let lastBrace = text.search(/(?![^\}]*\})/);
@@ -168,7 +177,7 @@ function prettyPrintJson(text: string) {
   return text;
 }
 
-export function extractJsonFromLog(text: string) {
+function extractJsonFromLog(text: string) {
   if (LOG_HEADER.test(text)) {
     return prettyPrintJson(text.replaceAll(LOG_HEADER, "")
       .replaceAll(/^\n/gm, ""));
@@ -177,8 +186,7 @@ export function extractJsonFromLog(text: string) {
   return text;
 }
 
-//export for unit tests
-export function extractFilesFromRequestId(text: string): string[] {
+function extractFilesFromRequestId(text: string): string[] {
   if (text.includes(',')) {
     text = extractRequestIdFromCsv(text);
   }
@@ -213,7 +221,6 @@ export function extractFilesFromRequestId(text: string): string[] {
   ]);
 }
 
-
 function addToResult(result: Record<string, Record<string, string[]>>, category: string, testFile: string, testCase: string) {
   const formattedTestFile = testFile
     .replace(/_/g, '-')
@@ -221,7 +228,7 @@ function addToResult(result: Record<string, Record<string, string[]>>, category:
 
   result[category] = result[category] || {};
   result[category][formattedTestFile] = result[category][formattedTestFile] || [];
-  //TODO do not push test-case if it exists
+
   testCase = testCase.replace(/_/g, '-');
   if (result[category][formattedTestFile].includes(testCase)) {
     return;
@@ -235,9 +242,5 @@ function extractRequestIdFromCsv(text: string) {
   //matches.shift(); // remove headers
   text = matches.join('\n');
   return text;
-}
-
-function sortText(text: string) {
-  return text.split('\n').sort().join('\n');
 }
 

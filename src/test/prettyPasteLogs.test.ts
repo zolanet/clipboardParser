@@ -1,9 +1,7 @@
 import * as assert from 'assert';
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-import { extractLogParts } from "../pasteActions";
+import { createMocks, getClipboardResponse, restoreMocks } from './clipboardMock';
+import { prettyPasteLogs } from "../pasteActions";
 
 let strignifiedJson = `a.b.c.d.ApplicationNAmeLogger - 
     logReference='EXT-0002-012345567-fghjkl',
@@ -109,26 +107,50 @@ let noJsonLogResp = `a.b.c.d.ApplicationNAmeLogger - Error occured while...
 at com.example.demo.service.DemoService.write(DemoService.java:74) 
 at java.base/java.util.Optional.map(Optional.java:260) ... 21 more`;
 
-
 suite('Json To String Parser Test', () => {
-    vscode.window.showInformationMessage('Start all tests.');
+  vscode.window.showInformationMessage('Start all tests.');
 
-    test('minifiedConsole', () => {
-        assert.strictEqual(extractLogParts(minifiedConsole), minifiedConsoleResp);
-    });
+  const testCases = [
+    {
+      description: 'minifiedConsole',
+      clipboardContent: minifiedConsole,
+      expectedOutput: minifiedConsoleResp,
+    },
+    {
+      description: 'minifiedConsoleUnfinished',
+      clipboardContent: minifiedConsoleUnfinished,
+      expectedOutput: minifiedConsoleResp,
+    },
+    {
+      description: 'minifiedDLq',
+      clipboardContent: minifiedDLq,
+      expectedOutput: minifiedDLqResp,
+    },
+    {
+      description: 'noJsonLog',
+      clipboardContent: noJsonLog,
+      expectedOutput: noJsonLogResp,
+    },
+    {
+      description: 'strignifiedJson',
+      clipboardContent: strignifiedJson,
+      expectedOutput: strignifiedJsonResp,
+    }
+  ];
 
-    test('minifiedConsoleUnfinished', () => {
-        assert.strictEqual(extractLogParts(minifiedConsoleUnfinished), minifiedConsoleResp);
-    });
+  testCases.forEach(({ description, clipboardContent, expectedOutput }) => {
+    test(description, async () => {
+      const insertSpy = createMocks(clipboardContent);
 
-    test('minifiedDLq', () => {
-        assert.strictEqual(extractLogParts(minifiedDLq), minifiedDLqResp);
+      try {
+        // Call the function
+        await prettyPasteLogs();
+        const insertedContent = getClipboardResponse(insertSpy);
+        assert.strictEqual(insertedContent.trim(), expectedOutput, 'Inserted content mismatch');
+      } finally {
+        // Restore all stubs
+        restoreMocks();
+      }
     });
-
-    test('noJsonLog', () => {
-        assert.strictEqual(extractLogParts(noJsonLog), noJsonLogResp);
-    });
-    test('strignifiedJson', () => {
-        assert.strictEqual(extractLogParts(strignifiedJson), strignifiedJsonResp);
-    });
+  });
 });

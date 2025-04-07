@@ -1,9 +1,9 @@
 import * as assert from 'assert';
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-import { extractJsonFromLog } from "../pasteActions";
+import { createMocks, getClipboardResponse, restoreMocks } from './clipboardMock';
+
+import { pasteJsonFromErrorReport } from "../pasteActions";
+
 let log = `abc def ghi jkl | {
 abc def ghi jkl | 
 abc def ghi jkl |   "logReference": "EXT-0002-012345567-fghjkl",
@@ -71,16 +71,35 @@ let logResp = `{
   "requestId": null
 }`;
 
+suite('pasteJsonFromErrorReport Test Suite', () => {
+  vscode.window.showInformationMessage('Start all tests.');
 
-suite('Build Log Parser Test Suite', () => {
-    vscode.window.showInformationMessage('Start all tests.');
+  const testCases = [
+    {
+      description: 'givenProperLog_WhenExtractJsonFromLog_ThenSuccess',
+      clipboardContent: log,
+      expectedOutput: logResp,
+    },
+    {
+      description: 'givenImproperLog_WhenExtractJsonFromLog_ThenNoTransformation',
+      clipboardContent: logResp,
+      expectedOutput: logResp,
+    }
+  ];
 
-    test('proper log', () => {
-        assert.strictEqual(extractJsonFromLog(log), logResp);
+  testCases.forEach(({ description, clipboardContent, expectedOutput }) => {
+    test(description, async () => {
+      const insertSpy = createMocks(clipboardContent);
+
+      try {
+        // Call the function
+        await pasteJsonFromErrorReport();
+        const insertedContent = getClipboardResponse(insertSpy);
+        assert.strictEqual(insertedContent.trim(), expectedOutput, 'Inserted content mismatch');
+      } finally {
+        // Restore all stubs
+        restoreMocks();
+      }
     });
-
-    test('improper log', () => {
-      assert.strictEqual(extractJsonFromLog(logResp), logResp);
   });
-
 });
