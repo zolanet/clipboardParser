@@ -1,35 +1,33 @@
 import * as vscode from 'vscode';
 
-// TODO using copy/paste feels clunky. Find a more elegant way to do this
 export async function toJira() {
     const text = await getSelectedText();
     let jira = to_jira(convertDashToStar(text));
     await setClipboard(jira);
-    return jira;//TODO change unit test to test clipboard
-
 }
 
 export async function toMd() {
     const text = await getSelectedText();
     let md = convertStarToDash(to_markdown(text));
     await setClipboard(md);
-    return md;//TODO change unit test to test clipboard
 }
 
-function convertDashToStar(md: string) {
+function convertDashToStar(text: string) {
     const regex = /^( {2,})?-\s/gm;
-    md = md.replace(regex, (match, g1) => {
+    text = text.replace(regex, (match, g1) => {
         const level = g1?.length / 2 || 0; // calculate the level based on the number of spaces
         return ' '.repeat(level * 2) + '* ';
     });
-    return md;
+    return text;
 }
 
 async function getSelectedText() {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
         const selection = editor.selection;
-        return editor.document.getText(selection);
+        const selectedText = editor.document.getText(selection);
+        deselectText(editor);
+        return selectedText;
     }
     return '';
 }
@@ -200,4 +198,19 @@ function to_jira(str: string) {
 
 async function setClipboard(text: string) {
     return await vscode.env.clipboard.writeText(text);
+}
+
+async function deselectText(editor: vscode.TextEditor) {
+    if (editor) {
+        const selection = editor.selection;
+        const range = new vscode.Range(selection.start, selection.end);
+
+        // Calculate the position of the next line
+        const nextLine = range.end.line + 1;
+        const nextLinePosition = new vscode.Position(nextLine, 0);
+
+        // Set the cursor to the start of the next line
+        editor.selection = new vscode.Selection(nextLinePosition, nextLinePosition);
+        editor.revealRange(new vscode.Range(nextLinePosition, nextLinePosition));
+    }
 }

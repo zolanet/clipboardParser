@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { toJira, toMd } from '../jiraFormatConverter';
-import {setClipboardContent, restoreMocks} from './clipboardMock';
+import { setClipboardContent, restoreMocks } from './clipboardMock';
 const md = `# Hello World
 
 This is a test of the **Markdown to Jira Wiki Syntax** converter.
@@ -61,17 +61,39 @@ function helloWorld() {
 | row1col1 | row1col2 |
 | row2col1 | row2col2 |`;
 
+const tableMd = `
+| Test step | Field | comparaison| Value |
+| --- | --- | --- | --- |
+| 30.0a | body.success.id |=|$keyJob102|
+
+Sera toujours True puisque:
+
+|Field|Value|Extracted variable|
+| --- | --- | --- |
+| body.success.id  | | $keyJob102 |
+`;
+
+const tableJira = `
+|| Test step || Field || comparaison|| Value ||
+| 30.0a | body.success.id |=|$keyJob102|
+
+Sera toujours True puisque:
+
+||Field||Value||Extracted variable||
+| body.success.id  | | $keyJob102 |
+`;
 
 suite('Jira Format Converter Test Suite', () => {
     vscode.window.showInformationMessage('Start all tests.');
 
     test('givenProperMd_WhenToJira_ThenSucces', async () => {
         // Mock the VS Code editor and document behavior
-       setClipboardContent(md);
+        setClipboardContent(md);
 
         try {
             // Run the function and assert the result
-            const result = await toJira();
+            await toJira();
+            const result = await vscode.env.clipboard.readText();
             assert.strictEqual(result, jira);
         } finally {
             // Restore the original behavior after the test
@@ -85,8 +107,39 @@ suite('Jira Format Converter Test Suite', () => {
 
         try {
             // Run the function and assert the result
-            const result = await toMd();
+            await toMd();
+            const result = await vscode.env.clipboard.readText();
             assert.strictEqual(result, md);
+        } finally {
+            // Restore the original behavior after the test
+            restoreMocks();
+        }
+    });
+
+    test('givenProperMdTable_WhenToJira_ThenSucces', async () => {
+        // Mock the VS Code editor and document behavior
+        setClipboardContent(tableMd);
+
+        try {
+            // Run the function and assert the result
+            await toJira();
+            const result = await vscode.env.clipboard.readText();
+            assert.strictEqual(result, tableJira);
+        } finally {
+            // Restore the original behavior after the test
+            restoreMocks();
+        }
+    });
+
+    test('givenProperJiraTable_WhenToMd_ThenSucces', async () => {
+        // Mock the VS Code editor and document behavior
+        setClipboardContent(tableJira);
+
+        try {
+            // Run the function and assert the result
+            await toMd();
+            const result = await vscode.env.clipboard.readText();
+            assert.strictEqual(result, tableMd);
         } finally {
             // Restore the original behavior after the test
             restoreMocks();
