@@ -29,14 +29,35 @@ const properConsoleDataResp = `- a.1.1.111-test-name-a.json
 	"assertion a"
 	\`\`\``;
 
+const partialMatchConsoleData = `a.1.1.111-test-name-a.json	"test case a"
+test-definition a
+1.1	app	domain	action	result
+"assertion a"
+111	...	...	...	1	
+b.2.2.222-test-name-a.json	"test case b"
+test-definition b
+`;
+
+const partialMatchConsoleDataResp = `- a.1.1.111-test-name-a.json
+	- "test case a"
+	- 1.1 action
+	\`\`\`bash
+	"assertion a"
+	\`\`\``;
+
 suite('pasteConsoleData Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 
 	const testCases = [
 		{
-			description: 'givenProperTextThenResponseDoesNotContainDuplicates',
+			description: 'givenProperTextThenResponseTransformProperly',
 			clipboardContent: properConsoleData,
 			expectedOutput: properConsoleDataResp
+		},
+		{
+			description: 'givenPartialMatchThenResponseContainsPartialMatch',
+			clipboardContent: partialMatchConsoleData,
+			expectedOutput: partialMatchConsoleDataResp
 		}
 	];
 
