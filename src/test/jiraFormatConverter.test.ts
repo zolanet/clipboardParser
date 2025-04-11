@@ -93,6 +93,28 @@ const jiraListWithTabs = `* first level bullet
 *** third level bullet
 **** fourth level bullet`;
 
+const codeBlock = `\`\`\`javascript
+function helloWorld() {
+    console.log("Hello, world!");
+}
+\`\`\``;
+
+const jiraCodeBlock = `{code:javascript}
+function helloWorld() {
+    console.log("Hello, world!");
+}
+{code}`;
+
+const codeBlockWhithQuotes = `\`\`\`bash
+"lorem ipsum tati tata"
+\`\`\``;
+
+const codeBlockWhithQuotesMinified = `\`\`\`bash\n"lorem ipsum tati tata"\n\`\`\``;
+
+const jiraCodeBlockWhithQuotes = `{code:bash}
+"lorem ipsum tati tata"
+{code}`;
+
 suite('Jira Format Converter Test Suite', () => {
     vscode.window.showInformationMessage('Start all tests.');
 
@@ -164,6 +186,51 @@ suite('Jira Format Converter Test Suite', () => {
             await toJira();
             const result = await vscode.env.clipboard.readText();
             assert.strictEqual(result, jiraListWithTabs);
+        } finally {
+            // Restore the original behavior after the test
+            restoreMocks();
+        }
+    });
+
+    test('givenCodeBlock_WhenToJira_ThenSucces', async () => {
+        // Mock the VS Code editor and document behavior
+        setClipboardContent(codeBlock);
+
+        try {
+            // Run the function and assert the result
+            await toJira();
+            const result = await vscode.env.clipboard.readText();
+            assert.strictEqual(result, jiraCodeBlock);
+        } finally {
+            // Restore the original behavior after the test
+            restoreMocks();
+        }
+    });
+
+    test('givenCodeBlockWithQuotes_WhenToJira_ThenSucces', async () => {
+        // Mock the VS Code editor and document behavior
+        setClipboardContent(codeBlockWhithQuotes);
+
+        try {
+            // Run the function and assert the result
+            await toJira();
+            const result = await vscode.env.clipboard.readText();
+            assert.strictEqual(result, jiraCodeBlockWhithQuotes);
+        } finally {
+            // Restore the original behavior after the test
+            restoreMocks();
+        }
+    });
+
+    test('givenCodeBlockWithQuotesMinified_WhenToJira_ThenSucces', async () => {
+        // Mock the VS Code editor and document behavior
+        setClipboardContent(codeBlockWhithQuotesMinified);
+
+        try {
+            // Run the function and assert the result
+            await toJira();
+            const result = await vscode.env.clipboard.readText();
+            assert.strictEqual(result, jiraCodeBlockWhithQuotes);
         } finally {
             // Restore the original behavior after the test
             restoreMocks();

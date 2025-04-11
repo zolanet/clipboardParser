@@ -105,6 +105,8 @@ function to_jira(str: string) {
 
     return (
         str
+            // Normalize line endings to Unix-style (\n)
+            .replace(/\r\n/g, '\n')
             // Tables
             .replace(
                 /^\n((?:\|.*?)+\|)[ \t]*\n((?:\|\s*?-{3,}\s*?)+\|)[ \t]*\n((?:(?:\|.*?)+\|[ \t]*\n)*)/gm,
@@ -125,71 +127,72 @@ function to_jira(str: string) {
                     return `\n||${headers.join('||')}||\n${rowstr}`;
                 }
             )
-            // Bold, Italic, and Combined (bold+italic)
-            .replace(/([*_]+)(\S.*?)\1/g, (match, wrapper, content) => {
-                switch (wrapper.length) {
-                    case 1:
-                        return `_${content}_`;
-                    case 2:
-                        return `*${content}*`;
-                    case 3:
-                        return `_*${content}*_`;
-                    default:
-                        return wrapper + content + wrapper;
-                }
-            })
-            // All Headers (# format)
-            .replace(/^([#]+)(.*?)$/gm, (match, level, content) => {
-                return `h${level.length}.${content}`;
-            })
-            // Headers (H1 and H2 underlines)
-            .replace(/^(.*?)\n([=-]+)$/gm, (match, content, level) => {
-                return `h${level[0] === '=' ? 1 : 2}. ${content}`;
-            })
-            // Ordered lists
-            .replace(/^([ \t]*)\d+\.\s+/gm, (match, spaces) => {
-                return `${Array(Math.floor(spaces.length / 3) + 1)
-                    .fill('#')
-                    .join('')} `;
-            })
-            // Un-Ordered Lists spaces
-            .replace(/^( *)[\*-]\s+/gm, (match, spaces) => {
-                return `${Array(Math.floor(spaces.length / 2 + 1))
-                    .fill('*')
-                    .join('')} `;
-            })
-            // Un-Ordered Lists tabs
-            .replace(/^(\t+)[\*-]\s+/gm, (match, spaces) => {
-                return `${Array(Math.floor(spaces.length + 1))
-                    .fill('*')
-                    .join('')} `;
-            })
-            // Headers (h1 or h2) (lines "underlined" by ---- or =====)
-            // Citations, Inserts, Subscripts, Superscripts, and Strikethroughs
-            .replace(new RegExp(`<(${Object.keys(map).join('|')})>(.*?)</\\1>`, 'g'), (match, from: keyof typeof map, content) => {
-                const to = map[from];
-                return to + content + to;
-            })
-            // Other kind of strikethrough
-            .replace(/(\s+)~~(.*?)~~(\s+)/g, '$1-$2-$3')
-            // Named/Un-Named Code Block
-            .replace(/```(.+\n)?((?:.|\n)*?)```/g, (match, synt, content) => {
-                let code = '{code}';
-                if (synt) {
-                    code = `{code:${synt.replace(/\n/g, '')}}\n`;
-                }
-                return `${code}${content}{code}`;
-            })
-            // Inline-Preformatted Text
-            .replace(/`([^`]+)`/g, '{{$1}}')
-            // Images
-            .replace(/!\[[^\]]*\]\(([^)]+)\)/g, '!$1!')
-            // Named Link
-            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '[$1|$2]')
-            // Un-Named Link
-            .replace(/<([^>]+)>/g, '[$1]')
-            // Single Paragraph Blockquote
-            .replace(/^>/gm, 'bq.')
+        // Bold, Italic, and Combined (bold+italic)
+        .replace(/([*_]+)(\S.*?)\1/g, (match, wrapper, content) => {
+            switch (wrapper.length) {
+                case 1:
+                    return `_${content}_`;
+                case 2:
+                    return `*${content}*`;
+                case 3:
+                    return `_*${content}*_`;
+                default:
+                    return wrapper + content + wrapper;
+            }
+        })
+        // All Headers (# format)
+        .replace(/^([#]+)(.*?)$/gm, (match, level, content) => {
+            return `h${level.length}.${content}`;
+        })
+        // Headers (H1 and H2 underlines)
+        .replace(/^(.*?)\n([=-]+)$/gm, (match, content, level) => {
+            return `h${level[0] === '=' ? 1 : 2}. ${content}`;
+        })
+        // Ordered lists
+        .replace(/^([ \t]*)\d+\.\s+/gm, (match, spaces) => {
+            return `${Array(Math.floor(spaces.length / 3) + 1)
+                .fill('#')
+                .join('')} `;
+        })
+        // Un-Ordered Lists spaces
+        .replace(/^( *)[\*-]\s+/gm, (match, spaces) => {
+            return `${Array(Math.floor(spaces.length / 2 + 1))
+                .fill('*')
+                .join('')} `;
+        })
+        // Un-Ordered Lists tabs
+        .replace(/^(\t+)[\*-]\s+/gm, (match, spaces) => {
+            return `${Array(Math.floor(spaces.length + 1))
+                .fill('*')
+                .join('')} `;
+        })
+        // Headers (h1 or h2) (lines "underlined" by ---- or =====)
+        // Citations, Inserts, Subscripts, Superscripts, and Strikethroughs
+        .replace(new RegExp(`<(${Object.keys(map).join('|')})>(.*?)</\\1>`, 'g'), (match, from: keyof typeof map, content) => {
+            const to = map[from];
+            return to + content + to;
+        })
+        // Other kind of strikethrough
+        .replace(/(\s+)~~(.*?)~~(\s+)/g, '$1-$2-$3')
+        // Named/Un-Named Code Block
+        .replace(/```(.+\n)?((?:.|\n)*?)```/g, (match, synt, content) => {
+            let code = '{code}';
+            if (synt) {
+                code = `{code:${synt.replace(/\n/g, '')}}\n`;
+            }
+            return `${code}${content}{code}`;
+        })
+        // Inline-Preformatted Text
+        .replace(/`([^`]+)`/g, '{{$1}}')//TODO fix this (make sur no tick befor and after)
+        //.replace(/(?<!`)`([^`]+)`(?!`)/g, '{{$1}}')
+        // Images
+        .replace(/!\[[^\]]*\]\(([^)]+)\)/g, '!$1!')
+        // Named Link
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '[$1|$2]')
+        // Un-Named Link
+        .replace(/<([^>]+)>/g, '[$1]')
+        // Single Paragraph Blockquote
+        .replace(/^>/gm, 'bq.')
     );
 }
 

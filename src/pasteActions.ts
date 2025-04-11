@@ -254,13 +254,14 @@ function extractRequestIdFromCsv(text: string) {
 function extractConsolaDataParts(text: string) {
   // Normalize line endings to Unix-style (\n)
   text = text.replace(/\r\n/g, '\n');
-  const regex = /(?<filename>^.+)(?:\t)(?<testCase>.+)(?:\n)(?<testCover>.+)(?:\n)(?<testStep>.+)(?:\t.+\t.+\t)(?<action>.+)(?:\t.+\n)(?<assertion>.+)(?:\n)/gm;
+  //TODO Error might be empty
+  const regex = /(?<filename>^.+)(?:\t)(?<testCase>.+)(?:\n)(?<testCover>.+)(?:\n)(?<testStep>.+)(?:\t.+\t.+\t)(?<action>.+)(?:\t.+\n)(?<error>.*)(?:\n)/gm;
 
   const matches = Array.from(text.matchAll(regex));
   if (matches.length > 0) {
     const result = matches.map((match) => {
-      const { filename, testCase, testStep, action, assertion } = match.groups!;
-      return `- ${filename}\n\t- ${testCase}\n\t- ${testStep} ${action}\n\t\`\`\`bash\n\t${assertion}\n\t\`\`\`\n`;
+      const { filename, testCase, testStep, action, error } = match.groups!;
+      return `- ${filename}\n\t- ${testCase}\n\t- ${testStep} ${action}\n\t\`\`\`bash\n\t${error}\n\t\`\`\`\n`;
     });
     return result;
   } else {
