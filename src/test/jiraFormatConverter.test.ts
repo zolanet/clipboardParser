@@ -83,6 +83,16 @@ Sera toujours True puisque:
 | body.success.id  | | $keyJob102 |
 `;
 
+const mdListWithTabs = `- first level bullet
+	- second level bullet
+		- third level bullet
+			- fourth level bullet`;
+
+const jiraListWithTabs = `* first level bullet
+** second level bullet
+*** third level bullet
+**** fourth level bullet`;
+
 suite('Jira Format Converter Test Suite', () => {
     vscode.window.showInformationMessage('Start all tests.');
 
@@ -140,6 +150,20 @@ suite('Jira Format Converter Test Suite', () => {
             await toMd();
             const result = await vscode.env.clipboard.readText();
             assert.strictEqual(result, tableMd);
+        } finally {
+            // Restore the original behavior after the test
+            restoreMocks();
+        }
+    });
+    test('givenMdListWithTabs_WhenToJira_ThenSucces', async () => {
+        // Mock the VS Code editor and document behavior
+        setClipboardContent(mdListWithTabs);
+
+        try {
+            // Run the function and assert the result
+            await toJira();
+            const result = await vscode.env.clipboard.readText();
+            assert.strictEqual(result, jiraListWithTabs);
         } finally {
             // Restore the original behavior after the test
             restoreMocks();

@@ -58,6 +58,11 @@ export function pasteNonBreakSpace() {
   }
 }
 
+export async function pasteConsoleData() {
+  const text = await getClipboard();
+  writeToCurrentEditor(extractConsolaDataParts(text));
+}
+
 /* --- "Private Functions here" --- */
 
 async function getClipboard() {
@@ -91,7 +96,8 @@ function arrayFromString(text: string): string[] {
 function formatAsMdLink(text: string): string[] {
   if (isProperUrl(text)) {
     let uri = vscode.Uri.parse(text);
-    let filename = uri.path.split("/").pop();
+
+    let filename = text.includes("pullrequest") ? "PR" : uri.path.split("/").pop();
     return arrayFromString(`[${filename}](${uri})`);
   }
   vscode.window.showInformationMessage("Clipboard does not contain a URL.");
@@ -244,3 +250,21 @@ function extractRequestIdFromCsv(text: string) {
   return text;
 }
 
+
+function extractConsolaDataParts(text: string) {
+  const regex = /(?<filename>^.+)(?:\t)(?<testCase>.+)(?:\n)(?<testCover>.+)(?:\n)(?<testStep>.+)(?:\t.+\t.+\t)(?<action>.+)(?:\t.+\n)(?<assertion>.+)(?:\n)/gm;
+  //TODO implement similar to extractFilesFromRequestId
+
+  const matches = Array.from(text.matchAll(regex));
+  //for each match return string filename\ntestCase\ntestStep action\n assertion
+  if (matches.length > 0) {
+    const result = matches.map((match) => {
+      const { filename, testCase, testStep, action, assertion } = match.groups!;
+      return `- ${filename}\n\t- ${testCase}\n\t- ${testStep} ${action}\n\t\`\`\`bash\n\t${assertion}\n\t\`\`\`\n`;
+    });
+    return result;
+  } else {
+    vscode.window.showInformationMessage("Clipboard does not contain console data.");
+    return text.split('\n');
+  }
+}

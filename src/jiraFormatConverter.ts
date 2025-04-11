@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 export async function toJira() {
     const text = await getSelectedText();
-    let jira = to_jira(convertDashToStar(text));
+    let jira = to_jira(text);
     await setClipboard(jira);
 }
 
@@ -10,15 +10,6 @@ export async function toMd() {
     const text = await getSelectedText();
     let md = convertStarToDash(to_markdown(text));
     await setClipboard(md);
-}
-
-function convertDashToStar(text: string) {
-    const regex = /^( {2,})?-\s/gm;
-    text = text.replace(regex, (match, g1) => {
-        const level = g1?.length / 2 || 0; // calculate the level based on the number of spaces
-        return ' '.repeat(level * 2) + '* ';
-    });
-    return text;
 }
 
 async function getSelectedText() {
@@ -161,9 +152,15 @@ function to_jira(str: string) {
                     .fill('#')
                     .join('')} `;
             })
-            // Un-Ordered Lists
-            .replace(/^([ \t]*)\*\s+/gm, (match, spaces) => {
+            // Un-Ordered Lists spaces
+            .replace(/^( *)[\*-]\s+/gm, (match, spaces) => {
                 return `${Array(Math.floor(spaces.length / 2 + 1))
+                    .fill('*')
+                    .join('')} `;
+            })
+            // Un-Ordered Lists tabs
+            .replace(/^(\t+)[\*-]\s+/gm, (match, spaces) => {
+                return `${Array(Math.floor(spaces.length + 1))
                     .fill('*')
                     .join('')} `;
             })

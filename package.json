@@ -51,6 +51,10 @@
       },
       {"command": "clipboard-parser.convertToMd",
         "title": "Convert to Markdown"
+      },
+      {
+        "command": "clipboard-parser.pasteConsoleData",
+        "title": "Paste Console Data"
       }
     ]
   },

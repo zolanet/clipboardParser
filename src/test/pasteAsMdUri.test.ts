@@ -1,13 +1,14 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { createMocks, getClipboardResponse, restoreMocks } from './clipboardMock';
-
 import { pasteAsMdUri } from '../pasteActions';
 
 const webUri = `https://en.wikipedia.org/wiki/The_Notwist`;
 const webUriResp = `[The_Notwist](https://en.wikipedia.org/wiki/The_Notwist)`;
 const fileUri = `/Users/marcdoucet/Downloads/backup-ER605-2024-09-14.bin`;
 const fileUriResp = `[backup-ER605-2024-09-14.bin](file:///Users/marcdoucet/Downloads/backup-ER605-2024-09-14.bin)`;
+const prUri = `https://dev.azure.com/organization/project/_git/repo/pullrequest/1234`;
+const prUriResp = `[PR](https://dev.azure.com/organization/project/_git/repo/pullrequest/1234)`;
 
 suite('pasteComparatorReport Test Suite', () => {
     vscode.window.showInformationMessage('Start all tests.');
@@ -32,6 +33,16 @@ suite('pasteComparatorReport Test Suite', () => {
             description: 'givenImproperFileUri_WhenPasteAsMdUri_ThenNoTransformation',
             clipboardContent: fileUriResp,
             expectedOutput: fileUriResp,
+        },
+        {
+            description: 'givenProperPrUri_WhenPasteAsMdUri_ThenSuccess',
+            clipboardContent: prUri,
+            expectedOutput: prUriResp,
+        },
+        {
+            description: 'givenImproperPrUri_WhenPasteAsMdUri_ThenNoTransformation',
+            clipboardContent: prUriResp,
+            expectedOutput: prUriResp,
         }
     ];
 
