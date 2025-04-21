@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { pasteAsMdUri, pasteEtcsFilenames, pasteComparatorReport, prettyPasteStackTrace, prettyPasteLogs, pasteNonBreakSpace, pasteJsonFromErrorReport, pasteRequestIdsAsFiles, pasteConsoleData } from "./pasteActions";
+import { pasteAsMdUri, pasteEtcsFilenames, pasteComparatorReport, prettyPasteLogs, pasteNonBreakSpace, pasteRequestIdsAsFiles, pasteConsoleData } from "./pasteActions";
 import { toJira, toMd } from './jiraFormatConverter';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -25,12 +25,6 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const prettyPasteStackTraceCommand = vscode.commands.registerCommand(
-    "clipboard-parser.prettyPasteStackTrace",
-    () => {
-      prettyPasteStackTrace();
-    }
-  );
 
   const prettyPasteLogsCommand = vscode.commands.registerCommand(
     "clipboard-parser.prettyPasteLogs",
@@ -43,13 +37,6 @@ export function activate(context: vscode.ExtensionContext) {
     "clipboard-parser.pasteNonBreakSpace",
     () => {
       pasteNonBreakSpace();
-    }
-  );
-
-  const pasteJsonFromErrorReportCommand = vscode.commands.registerCommand(
-    "clipboard-parser.pasteJsonFromErrorReport",
-    () => {
-      pasteJsonFromErrorReport();
     }
   );
 
@@ -82,7 +69,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
 
-  context.subscriptions.push(pasteAsMdUriCommand, pasteFilenamesCommand, prettyPasteStackTraceCommand, pastepasteComparatorReportCommand, prettyPasteLogsCommand, pasteNonBreakSpaceCommand, pasteJsonFromErrorReportCommand, pasteRequestIdsAsFilesCommand, convertToJiraCommand, convertToMdCommand, pasteConsoleDataCommand);
+  context.subscriptions.push(pasteAsMdUriCommand, pasteFilenamesCommand, pastepasteComparatorReportCommand, prettyPasteLogsCommand, pasteNonBreakSpaceCommand, pasteRequestIdsAsFilesCommand, convertToJiraCommand, convertToMdCommand, pasteConsoleDataCommand);
 }
 
 export function deactivate() { }

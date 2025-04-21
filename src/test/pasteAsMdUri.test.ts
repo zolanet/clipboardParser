@@ -1,6 +1,5 @@
-import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { createMocks, getClipboardResponse, restoreMocks } from './clipboardMock';
+import { runTest } from './clipboardMock';
 import { pasteAsMdUri } from '../pasteActions';
 
 const webUri = `https://en.wikipedia.org/wiki/The_Notwist`;
@@ -13,52 +12,28 @@ const prUriResp = `[PR](https://dev.azure.com/organization/project/_git/repo/pul
 suite('pasteComparatorReport Test Suite', () => {
     vscode.window.showInformationMessage('Start all tests.');
 
-    const testCases = [
-        {
-            description: 'givenProperWebUri_WhenPasteAsMdUri_ThenSuccess',
-            clipboardContent: webUri,
-            expectedOutput: webUriResp,
-        },
-        {
-            description: 'givenProperFileUri_WhenPasteAsMdUri_ThenNoTransformation',
-            clipboardContent: fileUri,
-            expectedOutput: fileUriResp,
-        },
-        {
-            description: 'givenImproperWebUri_WhenPasteAsMdUri_ThenSuccess',
-            clipboardContent: webUriResp,
-            expectedOutput: webUriResp,
-        },
-        {
-            description: 'givenImproperFileUri_WhenPasteAsMdUri_ThenNoTransformation',
-            clipboardContent: fileUriResp,
-            expectedOutput: fileUriResp,
-        },
-        {
-            description: 'givenProperPrUri_WhenPasteAsMdUri_ThenSuccess',
-            clipboardContent: prUri,
-            expectedOutput: prUriResp,
-        },
-        {
-            description: 'givenImproperPrUri_WhenPasteAsMdUri_ThenNoTransformation',
-            clipboardContent: prUriResp,
-            expectedOutput: prUriResp,
-        }
-    ];
 
-    testCases.forEach(({ description, clipboardContent, expectedOutput }) => {
-        test(description, async () => {
-            const insertSpy = createMocks(clipboardContent);
+    test('givenProperWebUri_WhenPasteAsMdUri_ThenSuccess', async () => {
+        await runTest(pasteAsMdUri, webUri, webUriResp);
+    });
 
-            try {
-                // Call the function
-                await pasteAsMdUri();
-                const insertedContent = getClipboardResponse(insertSpy);
-                assert.strictEqual(insertedContent.trim(), expectedOutput, 'Inserted content mismatch');
-            } finally {
-                // Restore all stubs
-                restoreMocks();
-            }
-        });
+    test('givenProperFileUri_WhenPasteAsMdUri_ThenNoTransformation', async () => {
+        await runTest(pasteAsMdUri, fileUri, fileUriResp);
+    });
+
+    test('givenImproperWebUri_WhenPasteAsMdUri_ThenSuccess', async () => {
+        await runTest(pasteAsMdUri, webUriResp, webUriResp);
+    });
+
+    test('givenImproperFileUri_WhenPasteAsMdUri_ThenNoTransformation', async () => {
+        await runTest(pasteAsMdUri, fileUriResp, fileUriResp);
+    });
+
+    test('givenProperPrUri_WhenPasteAsMdUri_ThenSuccess', async () => {
+        await runTest(pasteAsMdUri, prUri, prUriResp);
+    });
+
+    test('givenImproperPrUri_WhenPasteAsMdUri_ThenNoTransformation', async () => {
+        await runTest(pasteAsMdUri, prUriResp, prUriResp);
     });
 });

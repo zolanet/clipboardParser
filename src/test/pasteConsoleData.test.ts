@@ -1,79 +1,119 @@
-import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { createMocks, getClipboardResponse, restoreMocks } from './clipboardMock';
+import { runTest} from './clipboardMock';
 import { pasteConsoleData } from '../pasteActions';
 
 const properConsoleData = `a.1.1.111-test-name-a.json	"test case a"
-test-definition a
+Test Cover a
 1.1	app	domain	action	result
-"assertion a"
+"error message a"
 111	...	...	...	1	
 b.2.2.222-test-name-a.json	"test case b"
-test-definition b
+Test Cover b
 2.2	app	domain	action	result
-"assertion a"
+"error message a"
 222	...	...	...	2	
 `;
 
 const properConsoleDataResp = `- a.1.1.111-test-name-a.json
-	- "test case a"
-	- 1.1 action
-	\`\`\`bash
-	"assertion a"
-	\`\`\`
+  - "test case a"
+  - 1.1 action
+  \`\`\`bash
+  "error message a"
+  \`\`\`
 
 - b.2.2.222-test-name-a.json
-	- "test case b"
-	- 2.2 action
-	\`\`\`bash
-	"assertion a"
-	\`\`\``;
+  - "test case b"
+  - 2.2 action
+  \`\`\`bash
+  "error message a"
+  \`\`\``;
 
 const partialMatchConsoleData = `a.1.1.111-test-name-a.json	"test case a"
-test-definition a
+Test Cover a
 1.1	app	domain	action	result
-"assertion a"
+"error message a"
 111	...	...	...	1	
 b.2.2.222-test-name-a.json	"test case b"
-test-definition b
+Test Cover b
 `;
 
 const partialMatchConsoleDataResp = `- a.1.1.111-test-name-a.json
-	- "test case a"
-	- 1.1 action
-	\`\`\`bash
-	"assertion a"
-	\`\`\``;
+  - "test case a"
+  - 1.1 action
+  \`\`\`bash
+  "error message a"
+  \`\`\`
+
+- b.2.2.222-test-name-a.json
+  - "test case b"
+  -  undefined`;
+
+const consoleDataWithNoErrorGroup = `a.1.1.111-test-name-a.json	"test case a"
+Test Cover a
+1.1	app	domain	action	result
+111	...	...	...	1	
+b.2.2.222-test-name-a.json	"test case b"
+Test Cover b
+2.2	app	domain	action	result
+"error message a"
+222	...	...	...	2	
+`;
+
+const consoleDataWithNoErrorGroupResp = `- a.1.1.111-test-name-a.json
+  - "test case a"
+  - 1.1 action
+
+- b.2.2.222-test-name-a.json
+  - "test case b"
+  - 2.2 action
+  \`\`\`bash
+  "error message a"
+  \`\`\``;
+
+
+const consoleDataWithoutTestCover = `a.1.1.111-test-name-a.json	"test case a"
+1.1	app	domain	action	result
+"error message a"
+111	...	...	...	1	
+b.2.2.222-test-name-a.json	"test case b"
+Test Cover b
+2.2	app	domain	action	result
+"error message a"
+222	...	...	...	2	
+`;
+
+const consoleDataWithLongTestCover = `a.1.1.111-test-name-a.json	"test case a"
+Test Cover a
+1.1	app	domain	action	result
+"error message a"
+111	...	...	...	1	
+b.2.2.222-test-name-a.json	"test case b"
+"Test Cover b\nGiven\nWhen\nThen"
+2.2	app	domain	action	result
+"error message a"
+222	...	...	...	2	
+`;
 
 suite('pasteConsoleData Test Suite', () => {
-	vscode.window.showInformationMessage('Start all tests.');
+  vscode.window.showInformationMessage('Start all tests.');
 
-	const testCases = [
-		{
-			description: 'givenProperTextThenResponseTransformProperly',
-			clipboardContent: properConsoleData,
-			expectedOutput: properConsoleDataResp
-		},
-		{
-			description: 'givenPartialMatchThenResponseContainsPartialMatch',
-			clipboardContent: partialMatchConsoleData,
-			expectedOutput: partialMatchConsoleDataResp
-		}
-	];
+  test('givenProperTextThenResponseTransformProperly', async () => {
+    await runTest(pasteConsoleData, properConsoleData, properConsoleDataResp);
+  });
 
-	testCases.forEach(({ description, clipboardContent, expectedOutput }) => {
-		test(description, async () => {
-			const insertSpy = createMocks(clipboardContent);
+  test('givenPartialMatchThenResponseContainsPartialMatch', async () => {
+    await runTest(pasteConsoleData, partialMatchConsoleData, partialMatchConsoleDataResp);
+  });
 
-			try {
-				// Call the function
-				await pasteConsoleData();
-				const insertedContent = getClipboardResponse(insertSpy);
-				assert.strictEqual(insertedContent.trim(), expectedOutput, 'Inserted content mismatch');
-			} finally {
-				// Restore all stubs
-				restoreMocks();
-			}
-		});
-	});
+  test('givenConsoleDataWithNoErrorGroupThenResponseTransformProperly', async () => {
+    await runTest(pasteConsoleData, consoleDataWithNoErrorGroup, consoleDataWithNoErrorGroupResp);
+  });
+
+  test('givenConsoleDataWithoutTestCoverThenResponseTransformProperly', async () => {
+    await runTest(pasteConsoleData, consoleDataWithoutTestCover, properConsoleDataResp);
+  });
+
+  test('givenConsoleDataWithLongTestCoverThenResponseTransformProperly', async () => {
+    await runTest(pasteConsoleData, consoleDataWithLongTestCover, properConsoleDataResp);
+  });
 });

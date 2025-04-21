@@ -183,8 +183,7 @@ function to_jira(str: string) {
             return `${code}${content}{code}`;
         })
         // Inline-Preformatted Text
-        .replace(/`([^`]+)`/g, '{{$1}}')//TODO fix this (make sur no tick befor and after)
-        //.replace(/(?<!`)`([^`]+)`(?!`)/g, '{{$1}}')
+        .replace(/`([^`]+)`/g, '{{$1}}')
         // Images
         .replace(/!\[[^\]]*\]\(([^)]+)\)/g, '!$1!')
         // Named Link

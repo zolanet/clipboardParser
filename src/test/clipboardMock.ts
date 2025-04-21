@@ -1,5 +1,6 @@
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import * as assert from 'assert';
 
 const stubs: sinon.SinonStub[] = [];
 
@@ -46,4 +47,22 @@ export function restoreMocks() {
     // Restore all stubs
     stubs.forEach((stub) => stub.restore());
     stubs.length = 0; // Clear the stubs array
+}
+
+export async function runTest(
+    testedFunction: () => Promise<void>,
+    clipboardContent: string,
+    expectedOutput: string
+) {
+    const insertSpy = createMocks(clipboardContent);
+
+    try {
+        // Call the tested function
+        await testedFunction();
+        const insertedContent = getClipboardResponse(insertSpy);
+        assert.strictEqual(insertedContent.trim(), expectedOutput, 'Inserted content mismatch');
+    } finally {
+        // Restore all stubs
+        restoreMocks();
+    }
 }

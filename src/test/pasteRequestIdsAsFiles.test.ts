@@ -1,6 +1,5 @@
-import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { createMocks, getClipboardResponse, restoreMocks } from './clipboardMock';
+import { runTest } from './clipboardMock';
 import { pasteRequestIdsAsFiles } from '../pasteActions';
 
 const text = `property-test-case-2025.03.21-08.00.00.000-C_5_1_100_SubscribeAndManageInteractionOperations_functional_test_case_1_e668a4e4
@@ -77,60 +76,27 @@ h2.property-test-case
 * C.5.1.100-SubscribeAndManageInteractionOperations-functional
 ** test-case-1`;
 
-suite('pasteJsonFromErrorReport Test Suite', () => {
+suite('pasteRequestIdsAsFiles Test Suite', () => {
     vscode.window.showInformationMessage('Start all tests.');
-
-    const testCases = [
-        {
-            description: 'givenProperTextThenResponseDoesNotContainDuplicates',
-            clipboardContent: text,
-            expectedOutput: textResp,
-        },
-        {
-            description: 'givenTextWithDuplicateValuesThenResponseDoesNotContainDuplicates',
-            clipboardContent: textWithDuplicates,
-            expectedOutput: textResp,
-        },
-        {
-            description: 'givenTextWithSpaceAtTheEndWhenExtractFilesFromRequesrIdThenSucces',
-            clipboardContent: textWithSpaceAtBothEnds,
-            expectedOutput: textResp,
-        },
-        {
-            description: 'givenCsvWhenextractFilesFromRequestIdThenSuccess',
-            clipboardContent: textWithMissingCategory,
-            expectedOutput: respWithMissingCategory,
-        },
-        {
-            description: 'givenTextWithMissingCategoryPrefixWhenExtractFilesFromRequestIdThenSuccess',
-            clipboardContent: textWithMissingCategory,
-            expectedOutput: respWithMissingCategory,
-        },
-        {
-            description: 'givenTextWithUnparsabelLineWhenExtractFilesFromRequestIdThenSuccess',
-            clipboardContent: textWithUnparsableLine,
-            expectedOutput: respWithUnparsableLine
-        },
-        {
-            description: 'givenTextWithUppercaseWhenExtractFilesFromRequestIdThenSuccess',
-            clipboardContent: textWithUppercase,
-            expectedOutput: respWithUppercase
-        }
-    ];
-
-    testCases.forEach(({ description, clipboardContent, expectedOutput }) => {
-        test(description, async () => {
-            const insertSpy = createMocks(clipboardContent);
-
-            try {
-                // Call the function
-                await pasteRequestIdsAsFiles();
-                const insertedContent = getClipboardResponse(insertSpy);
-                assert.strictEqual(insertedContent.trim(), expectedOutput, 'Inserted content mismatch');
-            } finally {
-                // Restore all stubs
-                restoreMocks();
-            }
-        });
+    test('givenProperTextThenResponseDoesNotContainDuplicates', async () => {
+        await runTest(pasteRequestIdsAsFiles, text, textResp);
+    });
+    test('givenTextWithDuplicateValuesThenResponseDoesNotContainDuplicates', async () => {
+        await runTest(pasteRequestIdsAsFiles, textWithDuplicates, textResp);
+    });
+    test('givenTextWithSpaceAtTheEndWhenExtractFilesFromRequesrIdThenSucces', async () => {
+        await runTest(pasteRequestIdsAsFiles, textWithSpaceAtBothEnds, textResp);
+    });
+    test('givenCsvWhenextractFilesFromRequestIdThenSuccess', async () => {
+        await runTest(pasteRequestIdsAsFiles, csv, textResp);
+    });
+    test('givenTextWithMissingCategoryPrefixWhenExtractFilesFromRequestIdThenSuccess', async () => {
+        await runTest(pasteRequestIdsAsFiles, textWithMissingCategory, respWithMissingCategory);
+    });
+    test('givenTextWithUnparsabelLineWhenExtractFilesFromRequestIdThenSuccess', async () => {
+        await runTest(pasteRequestIdsAsFiles, textWithUnparsableLine, respWithUnparsableLine);
+    });
+    test('givenTextWithUppercaseWhenExtractFilesFromRequestIdThenSuccess', async () => {
+        await runTest(pasteRequestIdsAsFiles, textWithUppercase, respWithUppercase);
     });
 });
