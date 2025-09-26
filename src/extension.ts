@@ -1,5 +1,12 @@
 import * as vscode from "vscode";
-import { pasteAsMdUri, pasteEtcsFilenames, pasteComparatorReport, prettyPasteLogs, pasteNonBreakSpace, pasteRequestIdsAsFiles, pasteConsoleData } from "./pasteActions";
+import { pasteAsMdUri, 
+  pasteEtcsFilenames, 
+  pasteComparatorReport, 
+  prettyPasteLogs, 
+  pasteNonBreakSpace, 
+  pasteRequestIdsAsFiles, 
+  pasteConsoleData } from "./pasteActions";
+import {prettyPasteRequestIds} from './prettyPasteRequestIds';
 import { toJira, toMd } from './jiraFormatConverter';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -65,6 +72,13 @@ export function activate(context: vscode.ExtensionContext) {
     "clipboard-parser.pasteConsoleData",
     async () => {
       await pasteConsoleData();
+    }
+  );
+
+    const prettyPasteRequestIdsCommand = vscode.commands.registerCommand(
+    "clipboard-parser.prettyPasteRequestIds",
+    async () => {
+      await prettyPasteRequestIds();
     }
   );
 

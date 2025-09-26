@@ -41,12 +41,17 @@
         "command": "clipboard-parser.convertToJira",
         "title": "Convert to Jira"
       },
-      {"command": "clipboard-parser.convertToMd",
+      {
+        "command": "clipboard-parser.convertToMd",
         "title": "Convert to Markdown"
       },
       {
         "command": "clipboard-parser.pasteConsoleData",
         "title": "Paste Console Data"
+      },
+      {
+        "command": "clipboard-parser.prettyPasteRequestIds",
+        "title": "Pretty Paste RequestIds"
       }
     ]
   },
